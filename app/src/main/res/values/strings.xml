@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Information -->
+    <string name="app_name">Notionary</string>
+    <string name="app_tagline">Collaborate Smarter</string>
+    <string name="splash_text">Loading your workspace…</string>
+
+    <!-- Navigation Titles -->
+    <string name="title_home">My Groups</string>
+    <string name="title_groups">Create Group</string>
+    <string name="title_collaboration">Collaborate</string>
+    <string name="title_settings">Settings</string>
+
+    <!-- Group Creation -->
+    <string name="hint_group_name">Group Name</string>
+    <string name="hint_group_description">Description (optional)</string>
+    <string name="btn_create_group">Create Group</string>
+    <string name="error_empty_name">Group name cannot be empty</string>
+    <string name="success_group_created">Group created successfully</string>
+
+    <!-- Group Item -->
+    <string name="member_count">%d members</string>
+    <string name="empty_description">No description provided</string>
+
+    <!-- Collaboration -->
+    <string name="btn_generate_link">Generate Collaboration Link</string>
+    <string name="msg_link_copied">Link copied to clipboard</string>
+    <string name="label_shared_groups">Shared Groups</string>
+    <string name="empty_shared">No shared groups yet</string>
+    <string name="empty_groups">No groups created yet</string>
+
+    <!-- Settings -->
+    <string name="label_theme">Dark Theme</string>
+    <string name="desc_theme">Enable dark mode for better visibility at night</string>
+    <string name="label_about">About</string>
+    <string name="app_version">Version 1.0.0</string>
+
+    <!-- General -->
+    <string name="error_generic">Something went wrong</string>
+    <string name="error_network">Network error</string>
+    <string name="success_generic">Operation successful</string>
+    <string name="btn_retry">Retry</string>
+    <string name="btn_cancel">Cancel</string>
+</resources>

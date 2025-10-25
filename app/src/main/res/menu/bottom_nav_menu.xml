@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/baseline_home_24"
+        android:title="@string/title_home" />
+
+    <item
+        android:id="@+id/navigation_group_creation"
+        android:icon="@drawable/outline_ad_group_24"
+        android:title="@string/title_groups" />
+
+    <item
+        android:id="@+id/navigation_collaboration"
+        android:icon="@drawable/outline_add_link_24"
+        android:title="@string/title_collaboration" />
+
+    <item
+        android:id="@+id/navigation_settings"
+        android:icon="@drawable/outline_admin_panel_settings_24"
+        android:title="@string/title_settings" />
+</menu>

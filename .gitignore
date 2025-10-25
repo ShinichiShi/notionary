@@ -1,0 +1,65 @@
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Local configuration
+local.properties
+.gradle/
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/shelf/
+.idea/httpRequests/
+
+# Copilot & JetBrains metadata
+.idea/copilot.*
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+
+# Keystore files (for app signing)
+*.jks
+*.keystore
+
+# Log files
+*.log
+
+# Android Studio
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Generated files
+outputs/
+intermediates/
+generated/
+app/release/
+app/debug/
+
+# Gradle Wrapper logs
+gradle-app.setting
+gradle-app.properties
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Misc
+*.iml
+*.apk
+*.ap_
+*.aab
+*.class
+*.lock
+*.tmp
+*.orig
+*.so
+*.dll
+*.exe
+
+# NDK / CMake
+.cxx/
+
