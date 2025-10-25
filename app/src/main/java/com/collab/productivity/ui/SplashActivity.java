@@ -1,28 +1,56 @@
 package com.collab.productivity.ui;
 
+import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.view.View;
+import android.view.animation.AnticipateInterpolator;
 import androidx.appcompat.app.AppCompatActivity;
-import com.collab.productivity.R;
+import androidx.core.splashscreen.SplashScreen;
+import com.collab.productivity.utils.Logger;
 
 public class SplashActivity extends AppCompatActivity {
-    private static final long SPLASH_DELAY = 1000; // 1 second
+    private static final String TAG = "SplashActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Handle the splash screen transition
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
+        Logger.d(TAG, "onCreate - Start");
 
-        // Use Handler to delay the start of MainActivity
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            // Start MainActivity
-            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
-            startActivity(intent);
+        // Keep the splash screen visible for some time
+        splashScreen.setKeepOnScreenCondition(() -> true);
 
-            // Close splash activity
-            finish();
-        }, SPLASH_DELAY);
+        // Add fade out animation when splash screen is dismissed
+        splashScreen.setOnExitAnimationListener(splashScreenView -> {
+            ObjectAnimator fadeOut = ObjectAnimator.ofFloat(
+                splashScreenView.getView(),
+                View.ALPHA,
+                1f,
+                0f
+            );
+            fadeOut.setInterpolator(new AnticipateInterpolator());
+            fadeOut.setDuration(300L);
+
+            fadeOut.addListener(new android.animation.AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(android.animation.Animator animation) {
+                    splashScreenView.remove();
+                    // Start MainActivity
+                    startMainActivity();
+                }
+            });
+
+            fadeOut.start();
+        });
+    }
+
+    private void startMainActivity() {
+        Logger.d(TAG, "Starting MainActivity");
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

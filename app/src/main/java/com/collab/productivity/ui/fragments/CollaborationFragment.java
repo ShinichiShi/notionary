@@ -50,6 +50,6 @@ public class CollaborationFragment extends Fragment {
         clipboard.setPrimaryClip(clip);
 
         // Show success message
-        Toast.makeText(requireContext(), R.string.msg_link_copied, Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(), R.string.link_generated, Toast.LENGTH_SHORT).show();
     }
 }

@@ -3,55 +3,41 @@ package com.collab.productivity.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.preference.PreferenceManager;
 
-/**
- * ThemeManager - Manages app theme preferences
- * Handles light/dark mode toggle and persistence
- */
 public class ThemeManager {
+    private static final String PREF_THEME = "app_theme";
+    private static final String TAG = "ThemeManager";
+    private final Context context;
+    private final SharedPreferences preferences;
 
-    private static final String PREFS_NAME = "ThemePrefs";
-    private static final String KEY_DARK_MODE = "dark_mode";
-
-    private SharedPreferences sharedPreferences;
-    private Context context;
-
-    /**
-     * Constructor
-     * @param context Application context
-     */
     public ThemeManager(Context context) {
         this.context = context;
-        this.sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Logger.d(TAG, "ThemeManager initialized");
     }
 
-    /**
-     * Checks if dark mode is enabled
-     * @return true if dark mode is enabled, false otherwise
-     */
-    public boolean isDarkMode() {
-        return sharedPreferences.getBoolean(KEY_DARK_MODE, false);
-    }
-
-    /**
-     * Sets dark mode preference
-     * @param enabled true to enable dark mode, false to disable
-     */
-    public void setDarkMode(boolean enabled) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(KEY_DARK_MODE, enabled);
-        editor.apply();
-    }
-
-    /**
-     * Applies the saved theme to the app
-     * Should be called before setContentView() in activities
-     */
     public void applyTheme() {
-        if (isDarkMode()) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        }
+        int theme = getTheme();
+        Logger.d(TAG, "Applying theme: " + theme);
+        AppCompatDelegate.setDefaultNightMode(theme);
+    }
+
+    public void setTheme(int theme) {
+        Logger.d(TAG, "Setting theme to: " + theme);
+        preferences.edit().putInt(PREF_THEME, theme).apply();
+        applyTheme();
+    }
+
+    public int getTheme() {
+        return preferences.getInt(PREF_THEME, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+    }
+
+    public void toggleTheme() {
+        int currentTheme = getTheme();
+        int newTheme = (currentTheme == AppCompatDelegate.MODE_NIGHT_NO) ?
+                AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO;
+        Logger.d(TAG, "Toggling theme from " + currentTheme + " to " + newTheme);
+        setTheme(newTheme);
     }
 }
