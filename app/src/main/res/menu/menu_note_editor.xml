@@ -3,6 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_voice_input"
+        android:title="Voice Input"
+        android:icon="@drawable/ic_mic"
+        app:showAsAction="always"/>
+
+    <item
         android:id="@+id/action_save"
         android:title="Save"
         android:icon="@drawable/ic_save"
