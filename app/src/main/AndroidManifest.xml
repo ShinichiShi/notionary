@@ -48,6 +48,13 @@
             android:name=".ui.MainActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
+
+        <!-- Note Editor Activity - For creating and editing notes -->
+        <activity
+            android:name=".ui.NoteEditorActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:parentActivityName=".ui.MainActivity" />
     </application>
 
 </manifest>

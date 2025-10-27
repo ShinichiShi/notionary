@@ -3,9 +3,9 @@ package com.collab.productivity.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.preference.PreferenceManager;
 
 public class ThemeManager {
+    private static final String PREF_NAME = "theme_prefs";
     private static final String PREF_THEME = "app_theme";
     private static final String TAG = "ThemeManager";
     private final Context context;
@@ -13,7 +13,7 @@ public class ThemeManager {
 
     public ThemeManager(Context context) {
         this.context = context;
-        this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.preferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         Logger.d(TAG, "ThemeManager initialized");
     }
 

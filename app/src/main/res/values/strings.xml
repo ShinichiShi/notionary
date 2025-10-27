@@ -41,4 +41,12 @@
     <!-- Settings strings -->
     <string name="appearance">Appearance</string>
     <string name="dark_theme">Dark Theme</string>
+
+    <!-- Notes strings -->
+    <string name="write_note">Write Note</string>
+    <string name="new_note">New Note</string>
+    <string name="note_title">Title</string>
+    <string name="note_content">Write your note here...</string>
+    <string name="empty_notes">No notes yet. Tap + to create one!</string>
+    <string name="notes_section">My Notes</string>
 </resources>
