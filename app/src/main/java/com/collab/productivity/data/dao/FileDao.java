@@ -10,11 +10,21 @@ public interface FileDao {
     @Query("SELECT * FROM files WHERE parent_folder_id IS NULL")
     LiveData<List<FileItem>> getRootItems();
 
+    @Query("SELECT * FROM files WHERE parent_folder_id IS NULL ORDER BY " +
+           "CASE WHEN is_folder = 1 THEN 0 ELSE 1 END, " +
+           "name COLLATE NOCASE ASC")
+    LiveData<List<FileItem>> getRootItemsSorted();
+
     @Query("SELECT * FROM files WHERE parent_folder_id = :folderId")
     LiveData<List<FileItem>> getItemsInFolder(Long folderId);
 
     @Query("SELECT * FROM files WHERE id = :id")
     LiveData<FileItem> getItemById(long id);
+
+    @Query("SELECT * FROM files ORDER BY " +
+           "CASE WHEN is_folder = 1 THEN 0 ELSE 1 END, " +
+           "name COLLATE NOCASE ASC")
+    LiveData<List<FileItem>> getAllFiles();
 
     @Insert
     long insert(FileItem fileItem);
@@ -38,4 +48,7 @@ public interface FileDao {
 
     @Query("SELECT COUNT(*) FROM files WHERE parent_folder_id = :folderId")
     int getItemCount(long folderId);
+
+    @Query("SELECT * FROM files WHERE firestore_id = :firestoreId LIMIT 1")
+    FileItem findByFirestoreId(String firestoreId);
 }

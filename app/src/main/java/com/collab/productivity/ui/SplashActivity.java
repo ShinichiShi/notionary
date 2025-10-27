@@ -8,6 +8,8 @@ import android.view.animation.AnticipateInterpolator;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 import com.collab.productivity.utils.Logger;
+import com.collab.productivity.utils.FirebaseManager;
+import com.collab.productivity.utils.CloudinaryManager;
 
 public class SplashActivity extends AppCompatActivity {
     private static final String TAG = "SplashActivity";
@@ -19,6 +21,9 @@ public class SplashActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         Logger.d(TAG, "onCreate - Start");
+
+        // Initialize Firebase and Cloudinary
+        initializeServices();
 
         // Keep the splash screen visible for some time
         splashScreen.setKeepOnScreenCondition(() -> true);
@@ -38,8 +43,8 @@ public class SplashActivity extends AppCompatActivity {
                 @Override
                 public void onAnimationEnd(android.animation.Animator animation) {
                     splashScreenView.remove();
-                    // Start MainActivity
-                    startMainActivity();
+                    // Check authentication and navigate
+                    navigateToNextScreen();
                 }
             });
 
@@ -47,9 +52,24 @@ public class SplashActivity extends AppCompatActivity {
         });
     }
 
-    private void startMainActivity() {
-        Logger.d(TAG, "Starting MainActivity");
-        Intent intent = new Intent(this, MainActivity.class);
+    private void initializeServices() {
+        // Initialize Cloudinary
+        CloudinaryManager.getInstance().init(this);
+        Logger.d(TAG, "Services initialized");
+    }
+
+    private void navigateToNextScreen() {
+        FirebaseManager firebaseManager = FirebaseManager.getInstance();
+
+        Intent intent;
+        if (firebaseManager.isUserLoggedIn()) {
+            Logger.d(TAG, "User logged in, navigating to MainActivity");
+            intent = new Intent(this, MainActivity.class);
+        } else {
+            Logger.d(TAG, "User not logged in, navigating to LoginActivity");
+            intent = new Intent(this, LoginActivity.class);
+        }
+
         startActivity(intent);
         finish();
     }

@@ -49,4 +49,8 @@
     <string name="note_content">Write your note here...</string>
     <string name="empty_notes">No notes yet. Tap + to create one!</string>
     <string name="notes_section">My Notes</string>
+
+    <!-- Group collaboration strings -->
+    <string name="join_group_with_code">Join Group with Code</string>
+    <string name="creating_group">Creating...</string>
 </resources>

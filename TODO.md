@@ -1,0 +1,5 @@
+- make folder structure correct for uploading
+- add groups 
+- add collaboration feature
+- add more settings - user name, profile and all
+- smoothen UI

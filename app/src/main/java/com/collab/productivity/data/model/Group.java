@@ -14,7 +14,10 @@ public class Group {
     private String createdDate;
     private String collaborativeLink;
     private List<String> members;
+    private List<String> memberIds;
     private int itemCount;
+    private String creatorId;
+    private String inviteCode;
 
     // Constructor
     public Group(String id, String name, String description, String createdDate) {
@@ -23,8 +26,16 @@ public class Group {
         this.description = description;
         this.createdDate = createdDate;
         this.members = new ArrayList<>();
+        this.memberIds = new ArrayList<>();
         this.itemCount = 0;
         this.collaborativeLink = "";
+        this.inviteCode = "";
+    }
+
+    // Empty constructor for Firestore
+    public Group() {
+        this.members = new ArrayList<>();
+        this.memberIds = new ArrayList<>();
     }
 
     // Getters
@@ -85,10 +96,40 @@ public class Group {
         this.itemCount = itemCount;
     }
 
+    public List<String> getMemberIds() {
+        return memberIds;
+    }
+
+    public void setMemberIds(List<String> memberIds) {
+        this.memberIds = memberIds;
+    }
+
+    public String getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(String creatorId) {
+        this.creatorId = creatorId;
+    }
+
+    public String getInviteCode() {
+        return inviteCode;
+    }
+
+    public void setInviteCode(String inviteCode) {
+        this.inviteCode = inviteCode;
+    }
+
     // Helper methods
     public void addMember(String member) {
         if (!members.contains(member)) {
             members.add(member);
+        }
+    }
+
+    public void addMemberId(String memberId) {
+        if (!memberIds.contains(memberId)) {
+            memberIds.add(memberId);
         }
     }
 

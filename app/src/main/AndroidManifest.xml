@@ -44,17 +44,45 @@
             </intent-filter>
         </activity>
 
+        <!-- Login Activity - Authentication screen -->
+        <activity
+            android:name=".ui.LoginActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.CollabProductivity"/>
+
         <!-- Main Activity - Hosts all fragments with bottom navigation -->
         <activity
             android:name=".ui.MainActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustPan" />
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan"
+            android:launchMode="singleTask">
+            <!-- Deep link for group invitations -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="notionary.app"
+                    android:pathPrefix="/join" />
+                <data
+                    android:scheme="notionary"
+                    android:host="join" />
+            </intent-filter>
+        </activity>
 
         <!-- Note Editor Activity - For creating and editing notes -->
         <activity
             android:name=".ui.NoteEditorActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <!-- Folder Details Activity - For viewing folder metadata and contents -->
+        <activity
+            android:name=".ui.FolderDetailsActivity"
+            android:exported="false"
             android:parentActivityName=".ui.MainActivity" />
     </application>
 

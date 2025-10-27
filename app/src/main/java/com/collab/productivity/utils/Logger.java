@@ -39,6 +39,11 @@ public class Logger {
         writeToFile("INFO", tag, message);
     }
 
+    public static void w(String tag, String message) {
+        Log.w(APP_TAG + ":" + tag, message);
+        writeToFile("WARN", tag, message);
+    }
+
     private static synchronized void writeToFile(String level, String tag, String message) {
         if (logFile == null) return;
 

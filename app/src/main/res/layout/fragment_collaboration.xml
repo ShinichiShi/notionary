@@ -31,6 +31,15 @@
                 android:text="@string/btn_generate_link"
                 app:icon="@drawable/outline_add_link_24" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_join_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Join Group with Code"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:icon="@drawable/outline_ad_group_24" />
+
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/text_link"
                 android:layout_width="match_parent"

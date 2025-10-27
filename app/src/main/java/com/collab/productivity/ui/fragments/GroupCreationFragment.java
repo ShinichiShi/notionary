@@ -65,6 +65,10 @@ public class GroupCreationFragment extends Fragment {
         tilGroupName.setError(null);
         tilGroupDescription.setError(null);
 
+        // Disable button while creating
+        btnCreateGroup.setEnabled(false);
+        btnCreateGroup.setText("Creating...");
+
         // Generate unique ID and format current date
         String id = UUID.randomUUID().toString();
         String date = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
@@ -73,18 +77,42 @@ public class GroupCreationFragment extends Fragment {
         // Create new group
         Group newGroup = new Group(id, name, description, date);
 
-        // Add to ViewModel
-        groupViewModel.addGroup(newGroup);
+        // Add to ViewModel with callback
+        groupViewModel.addGroup(newGroup, new com.collab.productivity.viewmodel.GroupViewModel.GroupCreationCallback() {
+            @Override
+            public void onSuccess(Group createdGroup) {
+                if (isAdded()) {
+                    // Show success message with invite code
+                    Toast.makeText(requireContext(),
+                        "Group created! Invite code: " + createdGroup.getInviteCode(),
+                        Toast.LENGTH_LONG).show();
 
-        // Show success message
-        Toast.makeText(requireContext(), R.string.success_group_created,
-                Toast.LENGTH_SHORT).show();
+                    // Clear inputs
+                    etGroupName.setText("");
+                    etGroupDescription.setText("");
 
-        // Clear inputs
-        etGroupName.setText("");
-        etGroupDescription.setText("");
+                    // Re-enable button
+                    btnCreateGroup.setEnabled(true);
+                    btnCreateGroup.setText(R.string.btn_create_group);
 
-        // Navigate back to home
-        requireActivity().getSupportFragmentManager().popBackStack();
+                    // Navigate back to home
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (isAdded()) {
+                    Toast.makeText(requireContext(),
+                        "Error creating group: " + error,
+                        Toast.LENGTH_SHORT).show();
+
+                    // Re-enable button
+                    btnCreateGroup.setEnabled(true);
+                    btnCreateGroup.setText(R.string.btn_create_group);
+                }
+            }
+        });
     }
 }
+

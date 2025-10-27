@@ -18,10 +18,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.collab.productivity.R;
 import com.collab.productivity.data.model.FileItem;
-import com.collab.productivity.data.model.Note;
 import com.collab.productivity.ui.adapter.FileAdapter;
 import com.collab.productivity.ui.adapter.NoteAdapter;
 import com.collab.productivity.ui.NoteEditorActivity;
+import com.collab.productivity.ui.FolderDetailsActivity;
 import com.collab.productivity.utils.Logger;
 import com.collab.productivity.viewmodel.FileViewModel;
 import com.collab.productivity.viewmodel.NoteViewModel;
@@ -35,7 +35,6 @@ import android.webkit.MimeTypeMap;
 import java.util.ArrayList;
 import java.util.List;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import com.collab.productivity.data.model.FileTreeNode;
 
 /**
  * HomeFragment - Displays file management interface
@@ -52,13 +51,11 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
     private FileViewModel fileViewModel;
     private NoteViewModel noteViewModel;
     private TextView pathView;
+    private TextView fileCountView;
     private TextView emptyView;
     private TextView emptyNotesView;
     private FloatingActionButton fab;
     private SwipeRefreshLayout swipeRefresh;
-
-    private FileTreeNode rootNode;
-    private FileTreeNode currentNode;
 
     @Nullable
     @Override
@@ -72,6 +69,7 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             recyclerView = view.findViewById(R.id.recycler_view_files);
             notesRecyclerView = view.findViewById(R.id.recycler_view_notes);
             pathView = view.findViewById(R.id.current_path);
+            fileCountView = view.findViewById(R.id.file_count);
             emptyView = view.findViewById(R.id.empty_view);
             emptyNotesView = view.findViewById(R.id.empty_notes_view);
             fab = view.findViewById(R.id.fab_add);
@@ -93,26 +91,52 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             noteViewModel = new ViewModelProvider(this).get(NoteViewModel.class);
             Logger.d(TAG, "ViewModels initialized");
 
-            // Load files from private storage
-            loadFilesFromPrivateStorage();
-
-            // Observe current path
-            fileViewModel.getCurrentPath().observe(getViewLifecycleOwner(), path -> {
-                Logger.d(TAG, "Current path updated: " + path);
-                pathView.setText(path);
-                // Reload files when path changes
-                loadFilesFromPrivateStorage();
-            });
-
             // Set up FAB
             setupFab();
 
-            // Observe file data
+            // Observe ViewModel data first
             observeViewModel();
 
-            // Initialize root node
-            rootNode = new FileTreeNode(new FileItem("/", "/", "Root Directory", null, true));
-            currentNode = rootNode;
+            // Debug: Log all files in database
+            fileViewModel.getAllFiles().observe(getViewLifecycleOwner(), allFiles -> {
+                if (allFiles != null) {
+                    Logger.d(TAG, "=== DEBUG: Total files in database: " + allFiles.size() + " ===");
+                    for (FileItem file : allFiles) {
+                        Logger.d(TAG, "  - " + (file.isFolder() ? "[DIR] " : "[FILE] ") +
+                                file.getName() + " (ID: " + file.getId() +
+                                ", ParentID: " + file.getParentFolderId() +
+                                ", Path: " + file.getPath() + ")");
+                    }
+                }
+            });
+
+            // Observe current path changes
+            fileViewModel.getCurrentPath().observe(getViewLifecycleOwner(), path -> {
+                Logger.d(TAG, "Current path updated: " + path);
+                pathView.setText(path);
+            });
+
+            // Set up click listener for path view to show folder details
+            pathView.setOnClickListener(v -> {
+                openFolderDetails();
+            });
+
+            // Trigger initial sync from Firestore in background
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                if (isAdded()) {
+                    fileViewModel.syncFilesFromFirestore(new FileViewModel.SyncCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Logger.d(TAG, "Initial Firestore sync completed");
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Logger.e(TAG, "Initial Firestore sync failed: " + error, null);
+                        }
+                    });
+                }
+            }, 1000);
 
         } catch (Exception e) {
             Logger.e(TAG, "Error in onCreateView", e);
@@ -124,11 +148,29 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
 
     private void setupSwipeRefresh() {
         swipeRefresh.setOnRefreshListener(() -> {
-            Logger.d(TAG, "SwipeRefresh triggered");
-            // Load files and update UI
-            loadFilesFromPrivateStorage();
-            // Set refreshing to false after loading completes
-            swipeRefresh.post(() -> swipeRefresh.setRefreshing(false));
+            Logger.d(TAG, "SwipeRefresh triggered - syncing from Firestore");
+
+            // Sync from Firestore
+            fileViewModel.syncFilesFromFirestore(new FileViewModel.SyncCallback() {
+                @Override
+                public void onSuccess() {
+                    Logger.d(TAG, "Firestore sync completed");
+                    if (swipeRefresh != null) {
+                        swipeRefresh.setRefreshing(false);
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Logger.e(TAG, "Firestore sync failed: " + error, null);
+                    if (swipeRefresh != null) {
+                        swipeRefresh.setRefreshing(false);
+                    }
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(), "Sync error: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         });
     }
 
@@ -215,9 +257,10 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
                     String name = nameInput.getText().toString().trim();
                     String description = descriptionInput.getText().toString().trim();
                     if (!name.isEmpty()) {
-                        Logger.d(TAG, "Creating folder: " + name);
+                        Logger.d(TAG, "Creating folder: " + name + " in path: " +
+                                fileViewModel.getCurrentPath().getValue());
                         fileViewModel.createFolder(name, description);
-                        Toast.makeText(requireContext(), "Folder created: " + name, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Creating folder: " + name, Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(requireContext(), "Folder name cannot be empty", Toast.LENGTH_SHORT).show();
                     }
@@ -306,13 +349,11 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             .setPositiveButton("Save", (dialog, which) -> {
                 String description = descriptionInput.getText().toString().trim();
                 fileViewModel.uploadFile(fileName, filePath, description, fileSize, mimeType);
-                // Refresh the file list immediately
-                loadFilesFromPrivateStorage();
+                Toast.makeText(requireContext(), "Uploading file...", Toast.LENGTH_SHORT).show();
             })
             .setNegativeButton("Skip", (dialog, which) -> {
                 fileViewModel.uploadFile(fileName, filePath, "", fileSize, mimeType);
-                // Refresh the file list immediately
-                loadFilesFromPrivateStorage();
+                Toast.makeText(requireContext(), "Uploading file...", Toast.LENGTH_SHORT).show();
             })
             .show();
     }
@@ -351,14 +392,16 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
     private void observeViewModel() {
         Logger.d(TAG, "Setting up ViewModel observation");
 
-        // Observe files
+        // Observe files from ViewModel - this is the MAIN observer for file list updates
         fileViewModel.getCurrentFolderContents().observe(getViewLifecycleOwner(), files -> {
             if (files != null) {
-                Logger.d(TAG, "Received files update, count: " + files.size());
-                fileAdapter.submitList(files);
+                Logger.d(TAG, "Received files update from ViewModel, count: " + files.size());
+                fileAdapter.submitList(new ArrayList<>(files));
                 updateEmptyView(files.isEmpty());
+                updateFileCount(files.size());
             }
         });
+
 
         // Observe notes
         noteViewModel.getAllNotes().observe(getViewLifecycleOwner(), notes -> {
@@ -368,12 +411,40 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
                 updateEmptyNotesView(notes.isEmpty());
             }
         });
+
+        // Observe upload progress
+        fileViewModel.getUploadProgress().observe(getViewLifecycleOwner(), progress -> {
+            if (progress != null && progress > 0 && progress < 100) {
+                Logger.d(TAG, "Upload progress: " + progress + "%");
+                // Show progress in UI
+                if (isAdded()) {
+                    Toast.makeText(requireContext(), "Uploading: " + progress + "%", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        // Observe status messages
+        fileViewModel.getStatusMessage().observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                Logger.d(TAG, "Status message: " + message);
+                if (isAdded()) {
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void updateEmptyView(boolean isEmpty) {
         if (emptyView != null && recyclerView != null) {
             emptyView.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
             recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private void updateFileCount(int count) {
+        if (fileCountView != null) {
+            String text = count + (count == 1 ? " item" : " items");
+            fileCountView.setText(text);
         }
     }
 
@@ -388,19 +459,12 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
     public void onItemClick(FileItem item) {
         if (item.getName().equals("..")) {
             // Navigate to parent directory
-            if (currentNode != null && currentNode.getParent() != null) {
-                currentNode = currentNode.getParent();
-                fileViewModel.updatePath(currentNode.getFullPath());
-            }
+            Logger.d(TAG, "Navigating to parent folder");
+            fileViewModel.navigateToParent();
         } else if (item.isFolder()) {
-            // Find the clicked folder node
-            for (FileTreeNode child : currentNode.getChildren()) {
-                if (child.getItem().getName().equals(item.getName())) {
-                    currentNode = child;
-                    fileViewModel.updatePath(currentNode.getFullPath());
-                    break;
-                }
-            }
+            // Navigate into folder
+            Logger.d(TAG, "Navigating into folder: " + item.getName() + " (ID: " + item.getId() + ")");
+            fileViewModel.navigateToFolder(item.getId(), item.getPath());
         } else {
             // Open file
             openFile(item);
@@ -511,155 +575,34 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             .show();
     }
 
-    private void loadFilesFromPrivateStorage() {
-        Logger.d(TAG, "Loading files from private storage");
-        try {
-            File privateDir = requireContext().getFilesDir();
-            String currentPath = fileViewModel.getCurrentPath().getValue();
-            File currentDir = new File(privateDir, currentPath.equals("/") ? "" : currentPath);
+    /**
+     * Opens folder details activity to show metadata and files
+     */
+    private void openFolderDetails() {
+        Logger.d(TAG, "Opening folder details");
+        Intent intent = new Intent(requireContext(), FolderDetailsActivity.class);
 
-            // Create default structure if root directory is empty
-            if (privateDir.listFiles() == null || privateDir.listFiles().length == 0) {
-                createDefaultStructure(privateDir);
+        // Get current folder info from ViewModel
+        Long currentFolderId = fileViewModel.getCurrentFolderId().getValue();
+        String currentPath = fileViewModel.getCurrentPath().getValue();
+
+        if (currentFolderId != null && currentPath != null) {
+            // Get folder name from path
+            String folderName = currentPath.substring(currentPath.lastIndexOf('/') + 1);
+            if (folderName.isEmpty()) {
+                folderName = "Root";
             }
 
-            // Build or update the tree structure
-            updateFileTree(currentDir);
-
-            // Get the current node based on the path
-            currentNode = findNodeByPath(currentPath);
-            if (currentNode == null) {
-                currentNode = rootNode;
-            }
-
-            // Get flattened list for current directory
-            List<FileItem> fileItems = currentNode.getFlattenedList();
-
-            // Update UI on the main thread
-            if (isAdded()) {
-                requireActivity().runOnUiThread(() -> {
-                    fileViewModel.updateFileList(fileItems);
-                    updateEmptyView(fileItems.isEmpty());
-                    fileAdapter.submitList(new ArrayList<>(fileItems));
-                });
-            }
-        } catch (Exception e) {
-            Logger.e(TAG, "Error loading files from private storage", e);
-            if (isAdded()) {
-                requireActivity().runOnUiThread(() ->
-                    Toast.makeText(requireContext(), "Error loading files", Toast.LENGTH_SHORT).show()
-                );
-            }
-        }
-    }
-
-    private void updateFileTree(File directory) {
-        // Clear existing tree and rebuild
-        rootNode = new FileTreeNode(new FileItem("/", "/", "Root Directory", null, true));
-        buildFileTree(directory, rootNode);
-    }
-
-    private void buildFileTree(File directory, FileTreeNode parentNode) {
-        File[] files = directory.listFiles();
-        if (files != null) {
-            // Add folders first
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    FileItem item = new FileItem(
-                        file.getName(),
-                        file.getAbsolutePath(),
-                        "",
-                        null,
-                        true
-                    );
-                    FileTreeNode node = new FileTreeNode(item);
-                    parentNode.addChild(node);
-                    buildFileTree(file, node); // Recursively build tree for subdirectories
-                }
-            }
-
-            // Add files second
-            for (File file : files) {
-                if (!file.isDirectory()) {
-                    String mimeType = getMimeType(file);
-                    FileItem item = new FileItem(
-                        file.getName(),
-                        file.getAbsolutePath(),
-                        "",
-                        null,
-                        false
-                    );
-                    item.setSize(file.length());
-                    item.setMimeType(mimeType);
-                    FileTreeNode node = new FileTreeNode(item);
-                    parentNode.addChild(node);
-                }
-            }
-        }
-    }
-
-    private FileTreeNode findNodeByPath(String path) {
-        if (path.equals("/")) {
-            return rootNode;
+            intent.putExtra(FolderDetailsActivity.EXTRA_FOLDER_ID, currentFolderId);
+            intent.putExtra(FolderDetailsActivity.EXTRA_FOLDER_NAME, folderName);
+            intent.putExtra(FolderDetailsActivity.EXTRA_FOLDER_PATH, currentPath);
+        } else {
+            // Root folder - pass special indicators
+            intent.putExtra(FolderDetailsActivity.EXTRA_FOLDER_ID, -1L);
+            intent.putExtra(FolderDetailsActivity.EXTRA_FOLDER_PATH, "/");
         }
 
-        String[] parts = path.split("/");
-        FileTreeNode current = rootNode;
-
-        // Skip first empty part from splitting "/"
-        for (int i = 1; i < parts.length; i++) {
-            String part = parts[i];
-            if (part.isEmpty()) continue;
-
-            boolean found = false;
-            for (FileTreeNode child : current.getChildren()) {
-                if (child.getItem().getName().equals(part)) {
-                    current = child;
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                return null;
-            }
-        }
-
-        return current;
-    }
-
-    private void createDefaultStructure(File privateDir) {
-        try {
-            // Create default folders
-            new File(privateDir, "Documents").mkdir();
-            new File(privateDir, "Images").mkdir();
-            new File(privateDir, "Notes").mkdir();
-
-            // Create welcome.txt in root
-            File welcomeFile = new File(privateDir, "welcome.txt");
-            if (!welcomeFile.exists()) {
-                try (FileOutputStream fos = new FileOutputStream(welcomeFile)) {
-                    String welcomeText = "Welcome to Notionary!\n" +
-                                       "This is your default notes space.\n\n" +
-                                       "Folders:\n" +
-                                       "- Documents: For your documents\n" +
-                                       "- Images: For your images\n" +
-                                       "- Notes: For your notes\n";
-                    fos.write(welcomeText.getBytes());
-                }
-            }
-        } catch (Exception e) {
-            Logger.e(TAG, "Error creating default structure", e);
-        }
-    }
-
-    private String getMimeType(File file) {
-        String type = null;
-        String extension = MimeTypeMap.getFileExtensionFromUrl(file.getName());
-        if (extension != null) {
-            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
-        }
-        return type != null ? type : "*/*";
+        startActivity(intent);
     }
 }
 

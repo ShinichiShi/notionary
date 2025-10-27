@@ -25,6 +25,15 @@ public class Note {
     @ColumnInfo(name = "color")
     private int color; // For note card colors
 
+    @ColumnInfo(name = "user_id")
+    private String userId;
+
+    @ColumnInfo(name = "firestore_id")
+    private String firestoreId;
+
+    @ColumnInfo(name = "synced")
+    private boolean synced;
+
     // Constructor
     public Note(String title, String content) {
         this.title = title;
@@ -50,6 +59,12 @@ public class Note {
         this.modifiedAt = new Date();
     }
 
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+
+    public String getFirestoreId() { return firestoreId; }
+    public void setFirestoreId(String firestoreId) { this.firestoreId = firestoreId; }
+
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 
@@ -58,5 +73,7 @@ public class Note {
 
     public int getColor() { return color; }
     public void setColor(int color) { this.color = color; }
-}
 
+    public boolean isSynced() { return synced; }
+    public void setSynced(boolean synced) { this.synced = synced; }
+}

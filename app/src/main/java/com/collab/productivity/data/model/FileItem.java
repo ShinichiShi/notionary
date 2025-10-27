@@ -37,6 +37,21 @@ public class FileItem {
     @ColumnInfo(name = "size")
     private long size;
 
+    @ColumnInfo(name = "cloudinary_url")
+    private String cloudinaryUrl;
+
+    @ColumnInfo(name = "cloudinary_public_id")
+    private String cloudinaryPublicId;
+
+    @ColumnInfo(name = "user_id")
+    private String userId;
+
+    @ColumnInfo(name = "firestore_id")
+    private String firestoreId;
+
+    @ColumnInfo(name = "parent_path")
+    private String parentPath;
+
     // Constructor
     public FileItem(String name, String path, String description, Long parentFolderId, boolean isFolder) {
         this.name = name;
@@ -72,6 +87,21 @@ public class FileItem {
         this.parentFolderId = parentFolderId;
         this.modifiedAt = new Date();
     }
+
+    public String getCloudinaryUrl() { return cloudinaryUrl; }
+    public void setCloudinaryUrl(String cloudinaryUrl) { this.cloudinaryUrl = cloudinaryUrl; }
+
+    public String getCloudinaryPublicId() { return cloudinaryPublicId; }
+    public void setCloudinaryPublicId(String cloudinaryPublicId) { this.cloudinaryPublicId = cloudinaryPublicId; }
+
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+
+    public String getFirestoreId() { return firestoreId; }
+    public void setFirestoreId(String firestoreId) { this.firestoreId = firestoreId; }
+
+    public String getParentPath() { return parentPath; }
+    public void setParentPath(String parentPath) { this.parentPath = parentPath; }
 
     public boolean isFolder() { return isFolder; }
     public void setFolder(boolean folder) { isFolder = folder; }

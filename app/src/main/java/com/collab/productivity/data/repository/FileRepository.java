@@ -28,7 +28,12 @@ public class FileRepository {
 
     public LiveData<List<FileItem>> getRootItems() {
         Logger.d(TAG, "Getting root items");
-        return fileDao.getRootItems();
+        return fileDao.getRootItemsSorted();
+    }
+
+    public LiveData<List<FileItem>> getAllFiles() {
+        Logger.d(TAG, "Getting all files");
+        return fileDao.getAllFiles();
     }
 
     public LiveData<List<FileItem>> getItemsInFolder(Long folderId) {
@@ -135,8 +140,43 @@ public class FileRepository {
         return fileDao.searchItems(query);
     }
 
+    public void getItemByFirestoreId(String firestoreId, OnItemRetrievedListener listener) {
+        Logger.d(TAG, "Getting item by Firestore ID: " + firestoreId);
+        if (firestoreId == null || firestoreId.isEmpty()) {
+            mainHandler.post(() -> {
+                if (listener != null) {
+                    listener.onSuccess(null);
+                }
+            });
+            return;
+        }
+
+        executorService.execute(() -> {
+            try {
+                FileItem item = fileDao.findByFirestoreId(firestoreId);
+                mainHandler.post(() -> {
+                    if (listener != null) {
+                        listener.onSuccess(item);
+                    }
+                });
+            } catch (Exception e) {
+                Logger.e(TAG, "Error getting item by Firestore ID", e);
+                mainHandler.post(() -> {
+                    if (listener != null) {
+                        listener.onError(e);
+                    }
+                });
+            }
+        });
+    }
+
     public interface OnOperationCompleteListener {
         void onSuccess(long id);
+        void onError(Exception e);
+    }
+
+    public interface OnItemRetrievedListener {
+        void onSuccess(FileItem item);
         void onError(Exception e);
     }
 }

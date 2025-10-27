@@ -32,6 +32,10 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         notifyDataSetChanged(); // Using notifyDataSetChanged for simplicity in Phase 1
     }
 
+    public void submitList(List<Group> groups) {
+        setGroups(groups);
+    }
+
     public void setOnGroupClickListener(OnGroupClickListener listener) {
         this.onGroupClickListener = listener;
     }

@@ -1,7 +1,10 @@
 package com.collab.productivity.ui;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -11,9 +14,9 @@ import com.collab.productivity.ui.fragments.HomeFragment;
 import com.collab.productivity.ui.fragments.GroupCreationFragment;
 import com.collab.productivity.ui.fragments.CollaborationFragment;
 import com.collab.productivity.ui.fragments.SettingsFragment;
-import com.collab.productivity.viewmodel.GroupViewModel;
 import com.collab.productivity.utils.ThemeManager;
 import com.collab.productivity.utils.Logger;
+import com.collab.productivity.viewmodel.GroupViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -51,10 +54,67 @@ public class MainActivity extends AppCompatActivity {
                 loadFragment(homeFragment);
             }
 
+            // Handle deep links
+            handleDeepLink(getIntent());
+
         } catch (Exception e) {
             Logger.e(TAG, "Critical error in onCreate", e);
         }
         Logger.d(TAG, "onCreate - End");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleDeepLink(intent);
+    }
+
+    private void handleDeepLink(Intent intent) {
+        if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
+            Uri data = intent.getData();
+            if (data != null) {
+                Logger.d(TAG, "Deep link received: " + data.toString());
+
+                // Check if it's a join group link
+                if (data.getPath() != null && data.getPath().contains("/join")) {
+                    String inviteCode = data.getQueryParameter("code");
+                    if (inviteCode != null && !inviteCode.isEmpty()) {
+                        Logger.d(TAG, "Invite code from deep link: " + inviteCode);
+                        joinGroupFromDeepLink(inviteCode);
+                    }
+                }
+            }
+        }
+    }
+
+    private void joinGroupFromDeepLink(String inviteCode) {
+        // Show collaboration fragment
+        BottomNavigationView navView = findViewById(R.id.nav_view);
+        if (navView != null) {
+            navView.setSelectedItemId(R.id.navigation_collaboration);
+        }
+
+        // Join the group
+        groupViewModel.joinGroup(inviteCode, new GroupViewModel.GroupCreationCallback() {
+            @Override
+            public void onSuccess(com.collab.productivity.data.model.Group group) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this,
+                        "Successfully joined: " + group.getName(),
+                        Toast.LENGTH_LONG).show();
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this,
+                        "Error joining group: " + error,
+                        Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     @Override
