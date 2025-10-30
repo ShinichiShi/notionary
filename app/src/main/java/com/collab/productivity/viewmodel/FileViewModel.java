@@ -88,7 +88,18 @@ public class FileViewModel extends AndroidViewModel {
         currentFiles.addSource(currentSource, items -> {
             if (items != null) {
                 Logger.d(TAG, "Files loaded: " + items.size() + " items");
-                currentFiles.setValue(items);
+
+                // Add ".." parent navigation item if we're not in root
+                List<FileItem> itemsWithParent = new ArrayList<>();
+                if (folderId != null) {
+                    // Create a special ".." item for parent navigation
+                    FileItem parentItem = new FileItem("..", "", "", null, true);
+                    parentItem.setId(-1); // Special ID to identify parent navigation item
+                    itemsWithParent.add(parentItem);
+                }
+                itemsWithParent.addAll(items);
+
+                currentFiles.setValue(itemsWithParent);
             }
         });
     }
@@ -127,6 +138,20 @@ public class FileViewModel extends AndroidViewModel {
             parentPath = "/";
         }
         String fullPath = parentPath.equals("/") ? "/" + name : parentPath + "/" + name;
+
+        // Create the actual directory on the filesystem
+        java.io.File physicalDir = new java.io.File(getApplication().getFilesDir(), fullPath);
+        if (!physicalDir.exists()) {
+            boolean created = physicalDir.mkdirs();
+            Logger.d(TAG, "Creating physical directory: " + physicalDir.getAbsolutePath() + ", success: " + created);
+            if (!created && !physicalDir.exists()) {
+                Logger.e(TAG, "Failed to create physical directory", null);
+                statusMessage.setValue("Error creating folder on filesystem");
+                return;
+            }
+        } else {
+            Logger.d(TAG, "Physical directory already exists: " + physicalDir.getAbsolutePath());
+        }
 
         FileItem folder = new FileItem(name, fullPath, description, currentFolderId.getValue(), true);
         folder.setParentPath(parentPath);
@@ -474,6 +499,15 @@ public class FileViewModel extends AndroidViewModel {
                 for (java.util.Map<String, Object> fileData : files) {
                     try {
                         FileItem fileItem = convertMapToFileItem(fileData);
+
+                        // If it's a folder, create the physical directory
+                        if (fileItem.isFolder() && fileItem.getPath() != null) {
+                            java.io.File physicalDir = new java.io.File(getApplication().getFilesDir(), fileItem.getPath());
+                            if (!physicalDir.exists()) {
+                                boolean created = physicalDir.mkdirs();
+                                Logger.d(TAG, "Creating synced folder directory: " + physicalDir.getAbsolutePath() + ", success: " + created);
+                            }
+                        }
 
                         // Check if file already exists locally by firestoreId
                         repository.getItemByFirestoreId(fileItem.getFirestoreId(), new FileRepository.OnItemRetrievedListener() {

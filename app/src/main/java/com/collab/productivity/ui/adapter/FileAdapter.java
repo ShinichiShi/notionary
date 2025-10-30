@@ -30,11 +30,19 @@ public class FileAdapter extends ListAdapter<FileItem, FileAdapter.FileViewHolde
         super(new DiffUtil.ItemCallback<FileItem>() {
             @Override
             public boolean areItemsTheSame(@NonNull FileItem oldItem, @NonNull FileItem newItem) {
+                // Special handling for ".." parent navigation item
+                if (oldItem.getName().equals("..") && newItem.getName().equals("..")) {
+                    return true;
+                }
                 return oldItem.getId() == newItem.getId();
             }
 
             @Override
             public boolean areContentsTheSame(@NonNull FileItem oldItem, @NonNull FileItem newItem) {
+                // Special handling for ".." parent navigation item
+                if (oldItem.getName().equals("..") && newItem.getName().equals("..")) {
+                    return true;
+                }
                 return oldItem.getName().equals(newItem.getName()) &&
                        oldItem.getModifiedAt().equals(newItem.getModifiedAt());
             }
@@ -80,8 +88,12 @@ public class FileAdapter extends ListAdapter<FileItem, FileAdapter.FileViewHolde
             itemView.setOnLongClickListener(v -> {
                 int position = getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION) {
-                    listener.onItemLongClick(getItem(position), v);
-                    return true;
+                    FileItem item = getItem(position);
+                    // Don't allow long-click on ".." parent navigation item
+                    if (!item.getName().equals("..")) {
+                        listener.onItemLongClick(item, v);
+                        return true;
+                    }
                 }
                 return false;
             });
@@ -89,6 +101,15 @@ public class FileAdapter extends ListAdapter<FileItem, FileAdapter.FileViewHolde
 
         void bind(FileItem item) {
             nameView.setText(item.getName());
+
+            // Special handling for ".." parent navigation
+            if (item.getName().equals("..")) {
+                iconView.setImageResource(R.drawable.ic_folder);
+                detailsView.setText("Parent folder");
+                descriptionView.setVisibility(View.GONE);
+                return;
+            }
+
             iconView.setImageResource(item.isFolder() ?
                 R.drawable.ic_folder : R.drawable.ic_file);
 

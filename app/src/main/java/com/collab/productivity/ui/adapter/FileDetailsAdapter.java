@@ -78,6 +78,18 @@ public class FileDetailsAdapter extends RecyclerView.Adapter<FileDetailsAdapter.
         void bind(FileItem file) {
             nameView.setText(file.getName());
 
+            // Special handling for ".." parent navigation
+            if (file.getName().equals("..")) {
+                iconView.setImageResource(R.drawable.ic_folder);
+                typeView.setText("Parent Folder");
+                sizeView.setText("");
+                pathView.setText("");
+                createdView.setVisibility(View.GONE);
+                modifiedView.setVisibility(View.GONE);
+                descriptionView.setVisibility(View.GONE);
+                return;
+            }
+
             // Set icon
             iconView.setImageResource(file.isFolder() ?
                 R.drawable.ic_folder : R.drawable.ic_file);
@@ -96,6 +108,8 @@ public class FileDetailsAdapter extends RecyclerView.Adapter<FileDetailsAdapter.
             pathView.setText(file.getPath());
 
             // Set dates
+            createdView.setVisibility(View.VISIBLE);
+            modifiedView.setVisibility(View.VISIBLE);
             createdView.setText("Created: " + dateFormat.format(file.getCreatedAt()));
             modifiedView.setText("Modified: " + dateFormat.format(file.getModifiedAt()));
 

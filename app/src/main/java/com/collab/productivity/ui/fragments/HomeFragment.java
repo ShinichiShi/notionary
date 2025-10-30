@@ -306,7 +306,20 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             String fileName = getFileNameFromUri(uri);
             String currentPath = fileViewModel.getCurrentPath().getValue();
             File currentDir = new File(requireContext().getFilesDir(), currentPath.equals("/") ? "" : currentPath);
+
+            // Create the directory structure if it doesn't exist
+            if (!currentDir.exists()) {
+                boolean dirsCreated = currentDir.mkdirs();
+                Logger.d(TAG, "Creating directory structure: " + currentDir.getAbsolutePath() + ", success: " + dirsCreated);
+                if (!dirsCreated && !currentDir.exists()) {
+                    Logger.e(TAG, "Failed to create directory: " + currentDir.getAbsolutePath(), null);
+                    Toast.makeText(requireContext(), "Error creating folder structure", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
             File destinationFile = new File(currentDir, fileName);
+            Logger.d(TAG, "Destination file path: " + destinationFile.getAbsolutePath());
 
             // Copy file to current directory
             try (InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
@@ -328,7 +341,7 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
 
         } catch (Exception e) {
             Logger.e(TAG, "Error handling file selection", e);
-            Toast.makeText(requireContext(), "Error uploading file", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Error uploading file: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
