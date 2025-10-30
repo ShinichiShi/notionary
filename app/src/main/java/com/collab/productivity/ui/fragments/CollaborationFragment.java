@@ -68,6 +68,16 @@ public class CollaborationFragment extends Fragment {
     private void setupRecyclerView() {
         recyclerViewShared.setLayoutManager(new LinearLayoutManager(requireContext()));
         groupAdapter = new GroupAdapter(requireContext());
+        groupAdapter.setOnGroupClickListener(group -> {
+            // Open GroupDetailsActivity when a group is clicked
+            android.content.Intent intent = new android.content.Intent(requireContext(),
+                com.collab.productivity.ui.GroupDetailsActivity.class);
+            intent.putExtra(com.collab.productivity.ui.GroupDetailsActivity.EXTRA_GROUP_ID,
+                group.getId());
+            intent.putExtra(com.collab.productivity.ui.GroupDetailsActivity.EXTRA_GROUP_NAME,
+                group.getName());
+            startActivity(intent);
+        });
         recyclerViewShared.setAdapter(groupAdapter);
     }
 

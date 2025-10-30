@@ -27,7 +27,7 @@
     <string name="btn_create_group">Create Group</string>
     <string name="empty_groups">No groups created yet</string>
     <string name="success_group_created">Success Group created</string>
-    <string name="member_count">member count</string>
+    <string name="member_count">%d members</string>
 
 
     <!-- Collaboration strings -->

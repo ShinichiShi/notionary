@@ -64,7 +64,11 @@ dependencies {
 
     // Room database
     implementation("androidx.room:room-runtime:2.6.0")
+    implementation("androidx.room:room-paging:2.6.0")
     annotationProcessor("androidx.room:room-compiler:2.6.0")
+
+    // Paging 3
+    implementation("androidx.paging:paging-runtime:3.2.1")
 
     // Splash Screen
     implementation("androidx.core:core-splashscreen:1.0.1")

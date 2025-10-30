@@ -52,6 +52,9 @@ public class FileItem {
     @ColumnInfo(name = "parent_path")
     private String parentPath;
 
+    @ColumnInfo(name = "group_id")
+    private String groupId; // For collaborative group files
+
     // Constructor
     public FileItem(String name, String path, String description, Long parentFolderId, boolean isFolder) {
         this.name = name;
@@ -117,4 +120,7 @@ public class FileItem {
 
     public long getSize() { return size; }
     public void setSize(long size) { this.size = size; }
+
+    public String getGroupId() { return groupId; }
+    public void setGroupId(String groupId) { this.groupId = groupId; }
 }

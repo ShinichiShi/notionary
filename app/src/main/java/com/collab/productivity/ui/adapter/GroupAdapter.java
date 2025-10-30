@@ -61,6 +61,15 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         holder.itemView.setOnClickListener(v -> {
             if (onGroupClickListener != null) {
                 onGroupClickListener.onGroupClick(group);
+            } else {
+                // Default action: Open GroupDetailsActivity
+                android.content.Intent intent = new android.content.Intent(context,
+                    com.collab.productivity.ui.GroupDetailsActivity.class);
+                intent.putExtra(com.collab.productivity.ui.GroupDetailsActivity.EXTRA_GROUP_ID,
+                    group.getId());
+                intent.putExtra(com.collab.productivity.ui.GroupDetailsActivity.EXTRA_GROUP_NAME,
+                    group.getName());
+                context.startActivity(intent);
             }
         });
     }

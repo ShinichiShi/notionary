@@ -11,7 +11,7 @@ import com.collab.productivity.data.model.FileItem;
 import com.collab.productivity.data.model.Note;
 import com.collab.productivity.utils.Converters;
 
-@Database(entities = {FileItem.class, Note.class}, version = 3, exportSchema = false)
+@Database(entities = {FileItem.class, Note.class}, version = 4, exportSchema = false)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
 

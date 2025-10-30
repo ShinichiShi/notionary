@@ -22,6 +22,7 @@ public class FirebaseManager {
     private static final String COLLECTION_USERS = "users";
     private static final String COLLECTION_FILES = "files";
     private static final String COLLECTION_NOTES = "notes";
+    private static final String COLLECTION_GROUPS = "groups";
 
     private static FirebaseManager instance;
     private final FirebaseAuth auth;
@@ -385,6 +386,87 @@ public class FirebaseManager {
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error getting user files", e);
+                callback.onError(e.getMessage());
+            });
+    }
+
+    /**
+     * Save group file metadata to Firestore
+     */
+    public void saveGroupFileToFirestore(FileItem fileItem, String groupId, FirestoreCallback callback) {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            Log.e(TAG, "saveGroupFileToFirestore: User not logged in");
+            callback.onError("User not logged in");
+            return;
+        }
+
+        Log.d(TAG, "saveGroupFileToFirestore: Starting save for file: " + fileItem.getName() + " in group: " + groupId);
+
+        fileItem.setUserId(userId);
+        fileItem.setGroupId(groupId);
+
+        Map<String, Object> fileData = new HashMap<>();
+        fileData.put("name", fileItem.getName());
+        fileData.put("path", fileItem.getPath());
+        fileData.put("description", fileItem.getDescription());
+        fileData.put("parentFolderId", fileItem.getParentFolderId());
+        fileData.put("parentPath", fileItem.getParentPath());
+        fileData.put("isFolder", fileItem.isFolder());
+        fileData.put("mimeType", fileItem.getMimeType());
+        fileData.put("size", fileItem.getSize());
+        fileData.put("cloudinaryUrl", fileItem.getCloudinaryUrl());
+        fileData.put("cloudinaryPublicId", fileItem.getCloudinaryPublicId());
+        fileData.put("userId", userId);
+        fileData.put("groupId", groupId);
+        fileData.put("createdAt", fileItem.getCreatedAt());
+        fileData.put("modifiedAt", fileItem.getModifiedAt());
+
+        Log.d(TAG, "saveGroupFileToFirestore: Saving to groups/" + groupId + "/files");
+
+        db.collection(COLLECTION_GROUPS)
+            .document(groupId)
+            .collection(COLLECTION_FILES)
+            .add(fileData)
+            .addOnSuccessListener(documentReference -> {
+                Log.d(TAG, "saveGroupFileToFirestore: SUCCESS - File saved with ID: " + documentReference.getId());
+                fileItem.setFirestoreId(documentReference.getId());
+                callback.onSuccess(documentReference.getId());
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "saveGroupFileToFirestore: FAILED - Error: " + e.getMessage(), e);
+                callback.onError(e.getMessage() != null ? e.getMessage() : "Unknown error");
+            });
+    }
+
+    /**
+     * Get all files for a group from Firestore
+     */
+    public void getGroupFiles(String groupId, FilesCallback callback) {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            callback.onError("User not logged in");
+            return;
+        }
+
+        Log.d(TAG, "getGroupFiles: Loading files for group: " + groupId);
+
+        db.collection(COLLECTION_GROUPS)
+            .document(groupId)
+            .collection(COLLECTION_FILES)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                List<Map<String, Object>> files = new ArrayList<>();
+                for (QueryDocumentSnapshot document : querySnapshot) {
+                    Map<String, Object> fileData = document.getData();
+                    fileData.put("firestoreId", document.getId());
+                    files.add(fileData);
+                }
+                Log.d(TAG, "getGroupFiles: Loaded " + files.size() + " files");
+                callback.onSuccess(files);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error getting group files", e);
                 callback.onError(e.getMessage());
             });
     }

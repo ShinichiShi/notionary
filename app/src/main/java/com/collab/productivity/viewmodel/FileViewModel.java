@@ -27,6 +27,7 @@ public class FileViewModel extends AndroidViewModel {
     private final FirebaseManager firebaseManager;
     private final Stack<NavigationState> navigationStack;
     private LiveData<List<FileItem>> currentSource;
+    private String currentGroupId; // Track current group context
 
     private static class NavigationState {
         Long folderId;
@@ -624,6 +625,250 @@ public class FileViewModel extends AndroidViewModel {
                 }
             });
         }
+    }
+
+    /**
+     * Set the current group context for file operations
+     */
+    public void setCurrentGroupContext(String groupId) {
+        Logger.d(TAG, "Setting group context: " + groupId);
+        this.currentGroupId = groupId;
+    }
+
+    /**
+     * Get files for a specific group
+     */
+    public LiveData<List<FileItem>> getGroupFiles(String groupId) {
+        Logger.d(TAG, "Getting files for group: " + groupId);
+        return repository.getGroupFiles(groupId);
+    }
+
+    /**
+     * Create folder in a group
+     */
+    public void createFolderInGroup(String name, String description, String groupId) {
+        Logger.d(TAG, "Creating folder in group: " + name + " (Group: " + groupId + ")");
+        String userId = firebaseManager.getCurrentUserId();
+
+        if (userId == null) {
+            Logger.e(TAG, "User not logged in", null);
+            statusMessage.setValue("Error: User not logged in");
+            return;
+        }
+
+        String parentPath = currentPath.getValue();
+        if (parentPath == null) {
+            parentPath = "/";
+        }
+        String fullPath = parentPath.equals("/") ? "/" + name : parentPath + "/" + name;
+
+        // Create physical directory in group folder
+        java.io.File physicalDir = new java.io.File(getApplication().getFilesDir(), "groups/" + groupId + fullPath);
+        if (!physicalDir.exists()) {
+            boolean created = physicalDir.mkdirs();
+            Logger.d(TAG, "Creating group folder directory: " + physicalDir.getAbsolutePath() + ", success: " + created);
+        }
+
+        FileItem folder = new FileItem(name, fullPath, description, currentFolderId.getValue(), true);
+        folder.setParentPath(parentPath);
+        folder.setUserId(userId);
+        folder.setGroupId(groupId);
+
+        // Save to Firestore with group context
+        firebaseManager.saveGroupFileToFirestore(folder, groupId, new FirebaseManager.FirestoreCallback() {
+            @Override
+            public void onSuccess(String documentId) {
+                Logger.d(TAG, "Group folder synced to Firestore: " + documentId);
+                folder.setFirestoreId(documentId);
+
+                repository.insert(folder, new FileRepository.OnOperationCompleteListener() {
+                    @Override
+                    public void onSuccess(long id) {
+                        Logger.d(TAG, "Group folder created locally with id: " + id);
+                        folder.setId(id);
+                        repository.update(folder, null);
+                        statusMessage.setValue("Folder created successfully");
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Logger.e(TAG, "Error creating group folder locally", e);
+                        statusMessage.setValue("Folder synced to cloud but local save failed");
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Logger.e(TAG, "Error syncing group folder to Firestore: " + error, null);
+                statusMessage.setValue("Error syncing folder to cloud: " + error);
+
+                // Still save locally
+                repository.insert(folder, null);
+            }
+        });
+    }
+
+    /**
+     * Upload file to a group
+     */
+    public void uploadFileToGroup(String name, String path, String description, long size, String mimeType, String groupId) {
+        Logger.d(TAG, "Uploading file to group: " + name + " (Group: " + groupId + ")");
+        String userId = firebaseManager.getCurrentUserId();
+
+        if (userId == null) {
+            Logger.e(TAG, "User not logged in", null);
+            statusMessage.setValue("Error: User not logged in");
+            return;
+        }
+
+        String parentPath = currentPath.getValue();
+        if (parentPath == null) {
+            parentPath = "/";
+        }
+        String fullPath = parentPath.equals("/") ? "/" + name : parentPath + "/" + name;
+
+        FileItem file = new FileItem(name, fullPath, description, currentFolderId.getValue(), false);
+        file.setSize(size);
+        file.setMimeType(mimeType);
+        file.setParentPath(parentPath);
+        file.setUserId(userId);
+        file.setGroupId(groupId);
+        file.setPath(path);
+
+        statusMessage.setValue("Uploading to cloud...");
+        uploadProgress.setValue(0);
+
+        // Upload to Cloudinary with group context
+        Uri fileUri = Uri.parse("file://" + path);
+        cloudinaryManager.uploadFile(fileUri, userId, "groups/" + groupId + parentPath,
+            new CloudinaryManager.CloudinaryUploadCallback() {
+                @Override
+                public void onProgress(int progress) {
+                    Logger.d(TAG, "Upload progress: " + progress + "%");
+                    uploadProgress.setValue(progress);
+                }
+
+                @Override
+                public void onSuccess(String secureUrl, String publicId) {
+                    Logger.d(TAG, "Group file uploaded to Cloudinary successfully");
+                    file.setCloudinaryUrl(secureUrl);
+                    file.setCloudinaryPublicId(publicId);
+
+                    // Save to Firestore with group context
+                    firebaseManager.saveGroupFileToFirestore(file, groupId,
+                        new FirebaseManager.FirestoreCallback() {
+                            @Override
+                            public void onSuccess(String documentId) {
+                                Logger.d(TAG, "Group file metadata synced to Firestore: " + documentId);
+                                file.setFirestoreId(documentId);
+
+                                repository.insert(file, new FileRepository.OnOperationCompleteListener() {
+                                    @Override
+                                    public void onSuccess(long id) {
+                                        Logger.d(TAG, "Group file saved locally with id: " + id);
+                                        file.setId(id);
+                                        repository.update(file, null);
+                                        statusMessage.setValue("File uploaded successfully");
+                                        uploadProgress.setValue(100);
+
+                                        new android.os.Handler(android.os.Looper.getMainLooper())
+                                            .postDelayed(() -> uploadProgress.setValue(0), 500);
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Logger.e(TAG, "Error saving group file locally", e);
+                                        statusMessage.setValue("File uploaded to cloud but local save failed");
+                                        uploadProgress.setValue(0);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Logger.e(TAG, "Error syncing group file to Firestore: " + error, null);
+                                statusMessage.setValue("File uploaded to cloud but Firestore sync failed: " + error);
+                                uploadProgress.setValue(0);
+                                repository.insert(file, null);
+                            }
+                        });
+                }
+
+                @Override
+                public void onError(String error) {
+                    Logger.e(TAG, "Error uploading group file to Cloudinary: " + error, null);
+                    statusMessage.setValue("Error uploading file: " + error);
+                    uploadProgress.setValue(0);
+                }
+            });
+    }
+
+    /**
+     * Sync group files from Firestore
+     */
+    public void syncGroupFilesFromFirestore(String groupId, SyncCallback callback) {
+        Logger.d(TAG, "Syncing group files from Firestore: " + groupId);
+        String userId = firebaseManager.getCurrentUserId();
+
+        if (userId == null) {
+            Logger.e(TAG, "User not logged in", null);
+            if (callback != null) callback.onError("User not logged in");
+            return;
+        }
+
+        firebaseManager.getGroupFiles(groupId, new FirebaseManager.FilesCallback() {
+            @Override
+            public void onSuccess(List<java.util.Map<String, Object>> files) {
+                Logger.d(TAG, "Received " + files.size() + " group files from Firestore");
+
+                for (java.util.Map<String, Object> fileData : files) {
+                    try {
+                        FileItem fileItem = convertMapToFileItem(fileData);
+                        fileItem.setGroupId(groupId);
+
+                        // Create physical directory for folders
+                        if (fileItem.isFolder() && fileItem.getPath() != null) {
+                            java.io.File physicalDir = new java.io.File(getApplication().getFilesDir(),
+                                "groups/" + groupId + "/" + fileItem.getPath());
+                            if (!physicalDir.exists()) {
+                                physicalDir.mkdirs();
+                            }
+                        }
+
+                        repository.getItemByFirestoreId(fileItem.getFirestoreId(),
+                            new FileRepository.OnItemRetrievedListener() {
+                                @Override
+                                public void onSuccess(FileItem existingItem) {
+                                    if (existingItem != null) {
+                                        fileItem.setId(existingItem.getId());
+                                        repository.update(fileItem, null);
+                                    } else {
+                                        repository.insert(fileItem, null);
+                                    }
+                                }
+
+                                @Override
+                                public void onError(Exception e) {
+                                    Logger.e(TAG, "Error checking existing group file", e);
+                                }
+                            });
+                    } catch (Exception e) {
+                        Logger.e(TAG, "Error processing group file from Firestore", e);
+                    }
+                }
+
+                statusMessage.setValue("Synced " + files.size() + " group files from cloud");
+                if (callback != null) callback.onSuccess();
+            }
+
+            @Override
+            public void onError(String error) {
+                Logger.e(TAG, "Error syncing group files: " + error, null);
+                statusMessage.setValue("Error syncing group files: " + error);
+                if (callback != null) callback.onError(error);
+            }
+        });
     }
 
     /**

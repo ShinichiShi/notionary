@@ -140,6 +140,11 @@ public class FileRepository {
         return fileDao.searchItems(query);
     }
 
+    public LiveData<List<FileItem>> getGroupFiles(String groupId) {
+        Logger.d(TAG, "Getting files for group: " + groupId);
+        return fileDao.getGroupFiles(groupId);
+    }
+
     public void getItemByFirestoreId(String firestoreId, OnItemRetrievedListener listener) {
         Logger.d(TAG, "Getting item by Firestore ID: " + firestoreId);
         if (firestoreId == null || firestoreId.isEmpty()) {

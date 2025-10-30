@@ -1,6 +1,7 @@
 package com.collab.productivity.data.dao;
 
 import androidx.lifecycle.LiveData;
+import androidx.paging.PagingSource;
 import androidx.room.*;
 import com.collab.productivity.data.model.FileItem;
 import java.util.List;
@@ -51,4 +52,19 @@ public interface FileDao {
 
     @Query("SELECT * FROM files WHERE firestore_id = :firestoreId LIMIT 1")
     FileItem findByFirestoreId(String firestoreId);
+
+    @Query("SELECT * FROM files WHERE group_id = :groupId ORDER BY " +
+           "CASE WHEN is_folder = 1 THEN 0 ELSE 1 END, " +
+           "name COLLATE NOCASE ASC")
+    LiveData<List<FileItem>> getGroupFiles(String groupId);
+
+    @Query("SELECT * FROM files WHERE group_id = :groupId ORDER BY " +
+           "CASE WHEN is_folder = 1 THEN 0 ELSE 1 END, " +
+           "name COLLATE NOCASE ASC")
+    List<FileItem> getGroupFilesSync(String groupId);
+
+    @Query("SELECT * FROM files WHERE group_id = :groupId ORDER BY " +
+           "CASE WHEN is_folder = 1 THEN 0 ELSE 1 END, " +
+           "name COLLATE NOCASE ASC")
+    PagingSource<Integer, FileItem> getGroupFilesPaging(String groupId);
 }
