@@ -47,6 +47,8 @@
     <string name="hint_group_name">Group name</string>
     <string name="hint_group_description">Group description</string>
     <string name="label_shared_groups">Shared Groups</string>
+    <string name="search_notes_hint">Search notes...</string>
+    <string name="search_files_hint">Search files...</string>
 
     <!-- Settings -->
     <string name="appearance">Appearance</string>

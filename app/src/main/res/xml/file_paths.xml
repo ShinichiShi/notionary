@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <files-path
-        name="files"
-        path="." />
-    <cache-path
-        name="cache"
-        path="." />
-    <external-files-path
-        name="external_files"
-        path="." />
-    <external-cache-path
-        name="external_cache"
-        path="." />
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Internal app files directory -->
+    <files-path name="internal_files" path="." />
+
+    <!-- Uploads subdirectory -->
+    <files-path name="uploads" path="uploads/" />
+
+    <!-- Cache directory -->
+    <cache-path name="cache" path="." />
+
+    <!-- External files directory -->
+    <external-files-path name="external_files" path="." />
+
+    <!-- External cache directory -->
+    <external-cache-path name="external_cache" path="." />
 </paths>
 

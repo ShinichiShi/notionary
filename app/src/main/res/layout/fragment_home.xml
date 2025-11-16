@@ -5,202 +5,43 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.core.widget.NestedScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:paddingBottom="100dp"
-        android:clipToPadding="false"
-        android:scrollbars="vertical">
+        android:orientation="vertical"
+        android:paddingBottom="80dp">
 
-        <LinearLayout
+        <!-- Tab Layout -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:paddingBottom="24dp">
+            android:background="?attr/colorSurface"
+            app:tabTextColor="?attr/colorOnSurface"
+            app:tabSelectedTextColor="?attr/colorPrimary"
+            app:tabIndicatorColor="?attr/colorPrimary"
+            app:tabMode="fixed">
 
-            <!-- Notes Section -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                android:text="Notes" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/notes_section"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:padding="12dp"
-                        android:drawableStart="@drawable/ic_note"
-                        android:drawablePadding="8dp"/>
-
-                    <!-- Search Bar for Notes -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
-                        app:startIconDrawable="@drawable/ic_search"
-                        app:endIconMode="clear_text"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/search_notes"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:hint="Search notes..."
-                            android:inputType="text"
-                            android:maxLines="1"/>
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="?android:attr/listDivider"/>
-
-                    <TextView
-                        android:id="@+id/empty_notes_view"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/empty_notes"
-                        android:textSize="14sp"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:visibility="gone"/>
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recycler_view_notes"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:minHeight="100dp"
-                        android:nestedScrollingEnabled="true"
-                        android:clipToPadding="false"
-                        android:overScrollMode="never"/>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Files Section Header -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                android:text="Files" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+        </com.google.android.material.tabs.TabLayout>
 
-                    <TextView
-                        android:id="@+id/current_path"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="12dp"
-                        android:textSize="14sp"
-                        android:text="/"
-                        android:drawableStart="@drawable/ic_folder"
-                        android:drawablePadding="8dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"/>
+        <!-- ViewPager2 for tab content -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-                    <TextView
-                        android:id="@+id/file_count"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:paddingBottom="8dp"
-                        android:textSize="12sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:text="0 items"/>
-
-                    <!-- Search Bar for Files -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
-                        app:startIconDrawable="@drawable/ic_search"
-                        app:endIconMode="clear_text"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/search_files"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:hint="Search files..."
-                            android:inputType="text"
-                            android:maxLines="1"/>
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="?android:attr/listDivider"/>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Files RecyclerView Section -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/empty_view"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/empty_folder"
-                        android:textSize="14sp"
-                        android:gravity="center"
-                        android:padding="16dp"
-                        android:visibility="gone"/>
-
-                    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                        android:id="@+id/swipe_refresh"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/recycler_view_files"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:minHeight="100dp"
-                            android:nestedScrollingEnabled="true"
-                            android:clipToPadding="false"
-                            android:overScrollMode="never"
-                            android:padding="8dp"/>
-
-                    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-        </LinearLayout>
-
-    </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 
     <!-- FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
