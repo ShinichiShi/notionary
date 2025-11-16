@@ -99,7 +99,6 @@ public class HomeFragment extends Fragment {
                 popup.getMenu().add(0, 0, 0, getString(R.string.write_note));
                 popup.getMenu().add(0, 1, 1, getString(R.string.create_folder));
                 popup.getMenu().add(0, 2, 2, getString(R.string.upload_file));
-                popup.getMenu().add(0, 3, 3, "Test Communication"); // Temporary test
 
                 popup.setOnMenuItemClickListener(item -> {
                     int currentTab = viewPager.getCurrentItem();
@@ -125,15 +124,6 @@ public class HomeFragment extends Fragment {
                         }
                         // Small delay to ensure tab switch completes
                         viewPager.post(() -> uploadFile());
-                    } else if (item.getItemId() == 3) {
-                        // Test Communication
-                        Logger.d(TAG, "Test communication requested");
-                        FilesTabFragment filesFragment = getFilesTabFragment();
-                        if (filesFragment != null) {
-                            filesFragment.testCommunication();
-                        } else {
-                            Toast.makeText(getContext(), "FilesTabFragment not found", Toast.LENGTH_SHORT).show();
-                        }
                     }
                     return true;
                 });

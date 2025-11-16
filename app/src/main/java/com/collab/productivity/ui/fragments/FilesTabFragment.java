@@ -50,13 +50,7 @@ public class FilesTabFragment extends Fragment implements FileAdapter.FileClickL
         this.listener = listener;
     }
 
-    /**
-     * Test method to verify fragment communication works
-     */
-    public void testCommunication() {
-        Logger.d(TAG, "Test communication called - FilesTabFragment is responsive");
-        Toast.makeText(getContext(), "FilesTabFragment communication working", Toast.LENGTH_SHORT).show();
-    }
+
 
     private RecyclerView recyclerView;
     private FileAdapter fileAdapter;
