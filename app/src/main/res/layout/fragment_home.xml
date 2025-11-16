@@ -82,7 +82,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="100dp"
-                        android:maxHeight="300dp"
                         android:nestedScrollingEnabled="true"
                         android:clipToPadding="false"
                         android:overScrollMode="never"/>
@@ -128,6 +127,30 @@
                         android:textColor="?android:attr/textColorSecondary"
                         android:text="0 items"/>
 
+                    <!-- Search Bar for Files -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        app:startIconDrawable="@drawable/ic_search"
+                        app:endIconMode="clear_text"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/search_files"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Search files..."
+                            android:inputType="text"
+                            android:maxLines="1"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider"/>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -164,7 +187,6 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:minHeight="100dp"
-                            android:maxHeight="400dp"
                             android:nestedScrollingEnabled="true"
                             android:clipToPadding="false"
                             android:overScrollMode="never"

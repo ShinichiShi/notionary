@@ -59,6 +59,7 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
     private FloatingActionButton fab;
     private SwipeRefreshLayout swipeRefresh;
     private TextInputEditText searchNotesEditText;
+    private TextInputEditText searchFilesEditText;
 
     @Nullable
     @Override
@@ -78,9 +79,10 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             fab = view.findViewById(R.id.fab_add);
             swipeRefresh = view.findViewById(R.id.swipe_refresh);
             searchNotesEditText = view.findViewById(R.id.search_notes);
+            searchFilesEditText = view.findViewById(R.id.search_files);
             if (recyclerView == null || notesRecyclerView == null || pathView == null ||
                 emptyView == null || emptyNotesView == null || fab == null || swipeRefresh == null ||
-                searchNotesEditText == null) {
+                searchNotesEditText == null || searchFilesEditText == null) {
                 throw new IllegalStateException("Required views not found in layout");
             }
 
@@ -93,6 +95,7 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
 
             // Set up search functionality
             setupNotesSearch();
+            setupFilesSearch();
 
             // Initialize ViewModels
             fileViewModel = new ViewModelProvider(this).get(FileViewModel.class);
@@ -237,6 +240,36 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             });
         } catch (Exception e) {
             Logger.e(TAG, "Error setting up Notes search", e);
+        }
+    }
+
+    /**
+     * Sets up search functionality for files
+     */
+    private void setupFilesSearch() {
+        Logger.d(TAG, "Setting up Files search functionality");
+        try {
+            searchFilesEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    // Not needed
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    // Filter files as user types
+                    if (fileAdapter != null) {
+                        fileAdapter.filter(s.toString());
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    // Not needed
+                }
+            });
+        } catch (Exception e) {
+            Logger.e(TAG, "Error setting up Files search", e);
         }
     }
 
@@ -447,7 +480,7 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
         fileViewModel.getCurrentFolderContents().observe(getViewLifecycleOwner(), files -> {
             if (files != null) {
                 Logger.d(TAG, "Received files update from ViewModel, count: " + files.size());
-                fileAdapter.submitList(new ArrayList<>(files));
+                fileAdapter.setFiles(new ArrayList<>(files));
                 updateEmptyView(files.isEmpty());
                 updateFileCount(files.size());
             }

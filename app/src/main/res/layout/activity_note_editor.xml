@@ -65,7 +65,12 @@
                     android:layout_marginStart="8dp"
                     android:text="😊 Happy"
                     android:visibility="gone"
-                    app:closeIconVisible="true"/>
+                    android:textColor="?attr/colorOnSurface"
+                    app:chipBackgroundColor="?attr/colorSurfaceVariant"
+                    app:chipStrokeColor="?attr/colorOutline"
+                    app:chipStrokeWidth="1dp"
+                    app:closeIconVisible="true"
+                    app:closeIconTint="?attr/colorOnSurface"/>
 
             </LinearLayout>
 

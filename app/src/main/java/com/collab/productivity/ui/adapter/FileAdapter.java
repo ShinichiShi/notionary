@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.collab.productivity.R;
 import com.collab.productivity.data.model.FileItem;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class FileAdapter extends ListAdapter<FileItem, FileAdapter.FileViewHolder> {
@@ -20,6 +22,7 @@ public class FileAdapter extends ListAdapter<FileItem, FileAdapter.FileViewHolde
     private final Context context;
     private final FileClickListener listener;
     private final SimpleDateFormat dateFormat;
+    private List<FileItem> originalList = new ArrayList<>();
 
     public interface FileClickListener {
         void onItemClick(FileItem item);
@@ -133,5 +136,50 @@ public class FileAdapter extends ListAdapter<FileItem, FileAdapter.FileViewHolde
             int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
             return String.format("%.1f %s", size / Math.pow(1024, digitGroups), units[digitGroups]);
         }
+    }
+
+    /**
+     * Set the file list and store original for filtering
+     */
+    public void setFiles(List<FileItem> files) {
+        this.originalList = new ArrayList<>(files);
+        submitList(files);
+    }
+
+    /**
+     * Filter files based on search text
+     * Searches in file name and description
+     */
+    public void filter(String searchText) {
+        List<FileItem> filteredList = new ArrayList<>();
+
+        if (searchText.isEmpty()) {
+            filteredList.addAll(originalList);
+        } else {
+            String searchLower = searchText.toLowerCase();
+            for (FileItem item : originalList) {
+                // Always include ".." parent navigation item
+                if (item.getName().equals("..")) {
+                    filteredList.add(item);
+                    continue;
+                }
+
+                // Search in name and description
+                boolean matches = false;
+                if (item.getName() != null && item.getName().toLowerCase().contains(searchLower)) {
+                    matches = true;
+                }
+                if (!matches && item.getDescription() != null &&
+                    item.getDescription().toLowerCase().contains(searchLower)) {
+                    matches = true;
+                }
+
+                if (matches) {
+                    filteredList.add(item);
+                }
+            }
+        }
+
+        submitList(filteredList);
     }
 }
