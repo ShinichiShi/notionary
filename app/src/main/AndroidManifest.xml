@@ -81,6 +81,7 @@
         <activity
             android:name=".ui.NoteEditorActivity"
             android:exported="false"
+            android:theme="@style/Theme.Notionary.NoActionBar"
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".ui.MainActivity" />
 
@@ -88,12 +89,14 @@
         <activity
             android:name=".ui.FolderDetailsActivity"
             android:exported="false"
+            android:theme="@style/Theme.Notionary.NoActionBar"
             android:parentActivityName=".ui.MainActivity" />
 
         <!-- Group Details Activity - For viewing group files and collaboration -->
         <activity
             android:name=".ui.GroupDetailsActivity"
             android:exported="false"
+            android:theme="@style/Theme.Notionary.NoActionBar"
             android:parentActivityName=".ui.MainActivity" />
     </application>
 

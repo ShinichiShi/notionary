@@ -41,5 +41,30 @@ public class NoteViewModel extends AndroidViewModel {
     public LiveData<Note> getNoteById(long noteId) {
         return repository.getNoteById(noteId);
     }
+
+    // Search functionality
+    public LiveData<List<Note>> searchNotes(String query) {
+        return repository.searchNotes(query);
+    }
+
+    public LiveData<List<Note>> searchNotesAdvanced(String query) {
+        return repository.searchNotesAdvanced(query);
+    }
+
+    public LiveData<List<Note>> getNotesByMood(String moodType) {
+        return repository.getNotesByMood(moodType);
+    }
+
+    public LiveData<List<Note>> getNotesByTag(String tag) {
+        return repository.getNotesByTag(tag);
+    }
+
+    public LiveData<List<String>> getAllMoodTypes() {
+        return repository.getAllMoodTypes();
+    }
+
+    public LiveData<List<String>> getAllTags() {
+        return repository.getAllTags();
+    }
 }
 

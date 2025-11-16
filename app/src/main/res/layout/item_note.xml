@@ -35,13 +35,33 @@
             android:maxLines="3"
             android:ellipsize="end"/>
 
-        <TextView
-            android:id="@+id/note_date"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textSize="12sp"
-            android:textColor="?android:attr/textColorTertiary"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/note_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorTertiary"/>
+
+            <TextView
+                android:id="@+id/text_note_mood"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:visibility="gone"
+                android:background="@drawable/mood_background"
+                android:padding="4dp"
+                android:layout_marginStart="8dp"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 

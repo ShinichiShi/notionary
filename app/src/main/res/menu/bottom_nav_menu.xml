@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item
         android:id="@+id/navigation_home"
-        android:icon="@drawable/baseline_home_24"
-        android:title="@string/title_home" />
+        android:title="@string/title_home"
+        android:icon="@drawable/ic_home_24" />
 
     <item
         android:id="@+id/navigation_group_creation"
-        android:icon="@drawable/outline_ad_group_24"
-        android:title="@string/title_groups" />
+        android:title="@string/title_groups"
+        android:icon="@drawable/ic_group_24" />
 
     <item
         android:id="@+id/navigation_collaboration"
-        android:icon="@drawable/outline_add_link_24"
-        android:title="@string/title_collaboration" />
+        android:title="@string/title_collaboration"
+        android:icon="@drawable/ic_share_24" />
 
     <item
         android:id="@+id/navigation_settings"
-        android:icon="@drawable/outline_admin_panel_settings_24"
-        android:title="@string/title_settings" />
+        android:title="Settings"
+        android:icon="@drawable/ic_settings_24" />
+
 </menu>
+

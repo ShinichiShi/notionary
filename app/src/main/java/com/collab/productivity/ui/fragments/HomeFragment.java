@@ -28,6 +28,8 @@ import com.collab.productivity.viewmodel.NoteViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+import android.text.TextWatcher;
+import android.text.Editable;
 import java.io.InputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -56,6 +58,7 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
     private TextView emptyNotesView;
     private FloatingActionButton fab;
     private SwipeRefreshLayout swipeRefresh;
+    private TextInputEditText searchNotesEditText;
 
     @Nullable
     @Override
@@ -74,8 +77,10 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             emptyNotesView = view.findViewById(R.id.empty_notes_view);
             fab = view.findViewById(R.id.fab_add);
             swipeRefresh = view.findViewById(R.id.swipe_refresh);
+            searchNotesEditText = view.findViewById(R.id.search_notes);
             if (recyclerView == null || notesRecyclerView == null || pathView == null ||
-                emptyView == null || emptyNotesView == null || fab == null || swipeRefresh == null) {
+                emptyView == null || emptyNotesView == null || fab == null || swipeRefresh == null ||
+                searchNotesEditText == null) {
                 throw new IllegalStateException("Required views not found in layout");
             }
 
@@ -85,6 +90,9 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             // Set up RecyclerViews
             setupRecyclerView();
             setupNotesRecyclerView();
+
+            // Set up search functionality
+            setupNotesSearch();
 
             // Initialize ViewModels
             fileViewModel = new ViewModelProvider(this).get(FileViewModel.class);
@@ -199,6 +207,36 @@ public class HomeFragment extends Fragment implements FileAdapter.FileClickListe
             notesRecyclerView.setAdapter(noteAdapter);
         } catch (Exception e) {
             Logger.e(TAG, "Error setting up Notes RecyclerView", e);
+        }
+    }
+
+    /**
+     * Sets up search functionality for notes
+     */
+    private void setupNotesSearch() {
+        Logger.d(TAG, "Setting up Notes search functionality");
+        try {
+            searchNotesEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    // Not needed
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    // Filter notes as user types
+                    if (noteAdapter != null) {
+                        noteAdapter.filter(s.toString());
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    // Not needed
+                }
+            });
+        } catch (Exception e) {
+            Logger.e(TAG, "Error setting up Notes search", e);
         }
     }
 

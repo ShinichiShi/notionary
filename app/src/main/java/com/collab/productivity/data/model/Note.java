@@ -34,6 +34,18 @@ public class Note {
     @ColumnInfo(name = "synced")
     private boolean synced;
 
+    @ColumnInfo(name = "mood_emoji")
+    private String moodEmoji; // Store emoji character
+
+    @ColumnInfo(name = "mood_type")
+    private String moodType; // happy, sad, excited, calm, etc.
+
+    @ColumnInfo(name = "mood_intensity")
+    private int moodIntensity; // 1-5 scale
+
+    @ColumnInfo(name = "tags")
+    private String tags; // Comma-separated tags
+
     // Constructor
     public Note(String title, String content) {
         this.title = title;
@@ -41,6 +53,19 @@ public class Note {
         this.createdAt = new Date();
         this.modifiedAt = new Date();
         this.color = 0; // Default color
+        this.moodEmoji = "😐"; // Default neutral emoji
+        this.moodType = "neutral";
+        this.moodIntensity = 3;
+        this.synced = false;
+    }
+
+    // Constructor with mood
+    @androidx.room.Ignore
+    public Note(String title, String content, String moodEmoji, String moodType, int moodIntensity) {
+        this(title, content);
+        this.moodEmoji = moodEmoji;
+        this.moodType = moodType;
+        this.moodIntensity = moodIntensity;
     }
 
     // Getters and Setters
@@ -76,4 +101,53 @@ public class Note {
 
     public boolean isSynced() { return synced; }
     public void setSynced(boolean synced) { this.synced = synced; }
+
+    // Mood-related getters and setters
+    public String getMoodEmoji() { return moodEmoji; }
+    public void setMoodEmoji(String moodEmoji) {
+        this.moodEmoji = moodEmoji;
+        this.modifiedAt = new Date();
+    }
+
+    public String getMoodType() { return moodType; }
+    public void setMoodType(String moodType) {
+        this.moodType = moodType;
+        this.modifiedAt = new Date();
+    }
+
+    public int getMoodIntensity() { return moodIntensity; }
+    public void setMoodIntensity(int moodIntensity) {
+        this.moodIntensity = Math.max(1, Math.min(5, moodIntensity)); // Clamp between 1-5
+        this.modifiedAt = new Date();
+    }
+
+    public String getTags() { return tags; }
+    public void setTags(String tags) {
+        this.tags = tags;
+        this.modifiedAt = new Date();
+    }
+
+    // Utility methods
+    public boolean hasEmptyTitle() {
+        return title == null || title.trim().isEmpty();
+    }
+
+    public boolean hasEmptyContent() {
+        return content == null || content.trim().isEmpty();
+    }
+
+    public String getDisplayTitle() {
+        if (hasEmptyTitle()) {
+            return hasEmptyContent() ? "Untitled Note" :
+                    content.length() > 30 ? content.substring(0, 30) + "..." : content;
+        }
+        return title;
+    }
+
+    public String getMoodDisplay() {
+        if (moodEmoji != null && !moodEmoji.isEmpty()) {
+            return moodEmoji + " " + (moodType != null ? moodType : "");
+        }
+        return "";
+    }
 }

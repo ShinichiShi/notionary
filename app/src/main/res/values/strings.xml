@@ -1,56 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- General strings -->
     <string name="app_name">Notionary</string>
+
+    <!-- Common UI strings -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="share">Share</string>
+
+    <!-- Note Editor strings -->
+    <string name="note_title_hint">Enter title</string>
+    <string name="note_content_hint">What\'s on your mind?</string>
+    <string name="select_mood">Select Mood</string>
+    <string name="mood_selector_title">How are you feeling?</string>
+
+    <!-- Common messages -->
+    <string name="unsaved_changes_dialog_title">Unsaved changes</string>
+    <string name="unsaved_changes_dialog_message">You have unsaved changes. Do you want to save them?</string>
+    <string name="discard">Discard</string>
+
+    <!-- Content descriptions for accessibility -->
+    <string name="mood_button_description">Select mood for this note</string>
+    <string name="save_note_description">Save note</string>
+    <string name="back_button_description">Go back</string>
+    <string name="file_icon_description">File icon</string>
+
+    <!-- Navigation and sections -->
     <string name="title_home">Home</string>
     <string name="title_groups">Groups</string>
     <string name="title_collaboration">Collaboration</string>
-    <string name="title_settings">Settings</string>
+    <string name="notes_section">Notes</string>
 
-    <!-- File management strings -->
-    <string name="file_icon_description">File or folder icon</string>
-    <string name="folder">Folder</string>
+    <!-- Empty states -->
+    <string name="empty_folder">This folder is empty</string>
+    <string name="empty_notes">No notes yet. Create your first note!</string>
+    <string name="empty_shared">No shared groups yet</string>
+
+    <!-- Actions -->
+    <string name="add_file_or_folder">Add file or folder</string>
+    <string name="btn_generate_link">Generate Link</string>
+    <string name="btn_create_group">Create Group</string>
+
+    <!-- Forms and inputs -->
+    <string name="hint_group_name">Group name</string>
+    <string name="hint_group_description">Group description</string>
+    <string name="label_shared_groups">Shared Groups</string>
+
+    <!-- Settings -->
+    <string name="appearance">Appearance</string>
+    <string name="dark_theme">Dark Theme</string>
+
+    <!-- File and folder operations -->
+    <string name="write_note">Write Note</string>
     <string name="create_folder">Create Folder</string>
     <string name="upload_file">Upload File</string>
     <string name="rename">Rename</string>
     <string name="move">Move</string>
-    <string name="delete">Delete</string>
-    <string name="cancel">Cancel</string>
-    <string name="save">Save</string>
-    <string name="skip">Skip</string>
-    <string name="add_file_or_folder">Add file or folder</string>
-    <string name="empty_folder">This folder is empty</string>
+    <string name="folder">Folder</string>
 
-    <!-- Group creation strings -->
-    <string name="hint_group_name">Group Name</string>
-    <string name="hint_group_description">Group Description</string>
-    <string name="btn_create_group">Create Group</string>
-    <string name="empty_groups">No groups created yet</string>
-    <string name="success_group_created">Success Group created</string>
+    <!-- Group related -->
     <string name="member_count">%d members</string>
 
-
-    <!-- Collaboration strings -->
-    <string name="btn_generate_link">Generate Collaboration Link</string>
-    <string name="label_shared_groups">Shared Groups</string>
-    <string name="empty_shared">No shared groups available</string>
-    <string name="link_generated">Link generated and copied to clipboard</string>
-    <string name="error_generating_link">Error generating link</string>
-    <string name="error_empty_name">Error empty name</string>
-
-    <!-- Settings strings -->
-    <string name="appearance">Appearance</string>
-    <string name="dark_theme">Dark Theme</string>
-
-    <!-- Notes strings -->
-    <string name="write_note">Write Note</string>
-    <string name="new_note">New Note</string>
-    <string name="note_title">Title</string>
-    <string name="note_content">Write your note here...</string>
-    <string name="empty_notes">No notes yet. Tap + to create one!</string>
-    <string name="notes_section">My Notes</string>
-
-    <!-- Group collaboration strings -->
-    <string name="join_group_with_code">Join Group with Code</string>
-    <string name="creating_group">Creating...</string>
+    <!-- Error messages -->
+    <string name="error_empty_name">Name cannot be empty</string>
 </resources>
+

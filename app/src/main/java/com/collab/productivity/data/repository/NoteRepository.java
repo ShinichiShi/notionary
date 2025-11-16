@@ -44,5 +44,33 @@ public class NoteRepository {
     public LiveData<Note> getNoteById(long noteId) {
         return noteDao.getNoteById(noteId);
     }
+
+    // Search functionality
+    public LiveData<List<Note>> searchNotes(String query) {
+        String searchQuery = "%" + query + "%";
+        return noteDao.searchNotes(searchQuery);
+    }
+
+    public LiveData<List<Note>> searchNotesAdvanced(String query) {
+        String searchQuery = "%" + query + "%";
+        return noteDao.searchNotesAdvanced(searchQuery);
+    }
+
+    public LiveData<List<Note>> getNotesByMood(String moodType) {
+        return noteDao.getNotesByMood(moodType);
+    }
+
+    public LiveData<List<Note>> getNotesByTag(String tag) {
+        String tagQuery = "%" + tag + "%";
+        return noteDao.getNotesByTag(tagQuery);
+    }
+
+    public LiveData<List<String>> getAllMoodTypes() {
+        return noteDao.getAllMoodTypes();
+    }
+
+    public LiveData<List<String>> getAllTags() {
+        return noteDao.getAllTags();
+    }
 }
 

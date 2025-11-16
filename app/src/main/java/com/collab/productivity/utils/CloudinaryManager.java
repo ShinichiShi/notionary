@@ -89,7 +89,7 @@ public class CloudinaryManager {
 
                     @Override
                     public void onProgress(String requestId, long bytes, long totalBytes) {
-                        int progress = (int) ((bytes * 100) / totalBytes);
+                        int progress = totalBytes > 0 ? (int) ((bytes * 100) / totalBytes) : 0;
                         Log.d(TAG, "Upload progress: " + progress + "%");
                         callback.onProgress(progress);
                     }

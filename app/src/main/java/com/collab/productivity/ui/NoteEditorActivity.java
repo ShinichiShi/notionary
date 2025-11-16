@@ -13,16 +13,22 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+// import androidx.appcompat.widget.Toolbar; // Unused
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import com.collab.productivity.R;
 import com.collab.productivity.data.model.Note;
+// import com.collab.productivity.ui.dialog.MoodSelectorDialog;
 import com.collab.productivity.utils.Logger;
+import com.collab.productivity.utils.MoodHelper;
 import com.collab.productivity.viewmodel.NoteViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class NoteEditorActivity extends AppCompatActivity {
@@ -34,6 +40,8 @@ public class NoteEditorActivity extends AppCompatActivity {
 
     private EditText titleEditText;
     private EditText contentEditText;
+    private MaterialButton moodButton;
+    private Chip moodChip;
     private NoteViewModel noteViewModel;
     private long noteId = -1;
     private Note currentNote;
@@ -42,6 +50,9 @@ public class NoteEditorActivity extends AppCompatActivity {
     private SpeechRecognizer speechRecognizer;
     private boolean isListening = false;
     private MenuItem voiceMenuItem;
+
+    // Mood selection
+    private MoodHelper.Mood selectedMood;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,12 +70,23 @@ public class NoteEditorActivity extends AppCompatActivity {
         // Initialize views
         titleEditText = findViewById(R.id.note_title);
         contentEditText = findViewById(R.id.note_content);
+        moodButton = findViewById(R.id.btn_select_mood);
+        moodChip = findViewById(R.id.chip_current_mood);
 
         // Initialize ViewModel
         noteViewModel = new ViewModelProvider(this).get(NoteViewModel.class);
 
         // Initialize speech recognizer
         initializeSpeechRecognizer();
+
+        // Setup mood selection
+        setupMoodSelection();
+
+        // Setup back pressed handler
+        setupBackPressedHandler();
+
+        // Set default mood based on time of day
+        setDefaultMood();
 
         // Check if editing existing note
         if (getIntent().hasExtra(EXTRA_NOTE_ID)) {
@@ -81,6 +103,21 @@ public class NoteEditorActivity extends AppCompatActivity {
                 currentNote = note;
                 titleEditText.setText(note.getTitle());
                 contentEditText.setText(note.getContent());
+
+                // Load mood information
+                if (note.getMoodEmoji() != null && !note.getMoodEmoji().isEmpty()) {
+                    selectedMood = MoodHelper.findMoodByEmoji(note.getMoodEmoji());
+                    if (selectedMood == null) {
+                        // Create mood from note data
+                        selectedMood = new MoodHelper.Mood(
+                            note.getMoodEmoji(),
+                            note.getMoodType() != null ? note.getMoodType() : "custom",
+                            note.getMoodType() != null ? note.getMoodType() : "Custom",
+                            note.getMoodIntensity()
+                        );
+                    }
+                    updateMoodDisplay();
+                }
             }
         });
     }
@@ -133,13 +170,26 @@ public class NoteEditorActivity extends AppCompatActivity {
                 // Update existing note
                 currentNote.setTitle(title);
                 currentNote.setContent(content);
+
+                // Update mood information
+                if (selectedMood != null) {
+                    currentNote.setMoodEmoji(selectedMood.getEmoji());
+                    currentNote.setMoodType(selectedMood.getType());
+                    currentNote.setMoodIntensity(selectedMood.getIntensity());
+                }
+
                 noteViewModel.update(currentNote);
-                Toast.makeText(this, "Note updated", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Note updated " + (selectedMood != null ? selectedMood.getEmoji() : ""), Toast.LENGTH_SHORT).show();
             } else {
                 // Create new note
-                Note note = new Note(title, content);
+                Note note;
+                if (selectedMood != null) {
+                    note = new Note(title, content, selectedMood.getEmoji(), selectedMood.getType(), selectedMood.getIntensity());
+                } else {
+                    note = new Note(title, content);
+                }
                 noteViewModel.insert(note);
-                Toast.makeText(this, "Note saved", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Note saved " + (selectedMood != null ? selectedMood.getEmoji() : ""), Toast.LENGTH_SHORT).show();
             }
             finish();
         } catch (Exception e) {
@@ -156,17 +206,20 @@ public class NoteEditorActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        // Auto-save on back press
-        String title = titleEditText.getText().toString().trim();
-        String content = contentEditText.getText().toString().trim();
+    private void setupBackPressedHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Auto-save on back press
+                String title = titleEditText.getText().toString().trim();
+                String content = contentEditText.getText().toString().trim();
 
-        if (!title.isEmpty() || !content.isEmpty()) {
-            saveNote();
-        } else {
-            super.onBackPressed();
-        }
+                if (!title.isEmpty() || !content.isEmpty()) {
+                    saveNote();
+                }
+                finish();
+            }
+        });
     }
 
     // Speech Recognition Methods
@@ -285,10 +338,12 @@ public class NoteEditorActivity extends AppCompatActivity {
 
     private void appendTextToContent(String text) {
         String currentContent = contentEditText.getText().toString();
+        StringBuilder sb = new StringBuilder(currentContent);
         if (!currentContent.isEmpty() && !currentContent.endsWith(" ") && !currentContent.endsWith("\n")) {
-            currentContent += " ";
+            sb.append(" ");
         }
-        contentEditText.setText(currentContent + text);
+        sb.append(text);
+        contentEditText.setText(sb.toString());
         contentEditText.setSelection(contentEditText.getText().length());
     }
 
@@ -346,6 +401,50 @@ public class NoteEditorActivity extends AppCompatActivity {
         super.onDestroy();
         if (speechRecognizer != null) {
             speechRecognizer.destroy();
+        }
+    }
+
+    // Mood Selection Methods
+    private void setupMoodSelection() {
+        if (moodButton != null) {
+            moodButton.setOnClickListener(v -> showMoodSelector());
+        }
+
+        if (moodChip != null) {
+            moodChip.setOnClickListener(v -> showMoodSelector());
+            moodChip.setVisibility(android.view.View.GONE);
+        }
+    }
+
+    private void showMoodSelector() {
+        com.collab.productivity.ui.dialog.MoodSelectorDialog dialog = com.collab.productivity.ui.dialog.MoodSelectorDialog.newInstance();
+        dialog.setOnMoodSelectedListener(new com.collab.productivity.ui.dialog.MoodSelectorDialog.OnMoodSelectedListener() {
+            @Override
+            public void onMoodSelected(MoodHelper.Mood mood) {
+                selectedMood = mood;
+                updateMoodDisplay();
+            }
+        });
+        dialog.show((androidx.fragment.app.FragmentManager) getSupportFragmentManager(), "mood_selector");
+    }
+
+    private void updateMoodDisplay() {
+        if (selectedMood != null && moodChip != null) {
+            moodChip.setText(selectedMood.getDisplayText());
+            moodChip.setVisibility(android.view.View.VISIBLE);
+        } else if (moodChip != null) {
+            moodChip.setVisibility(android.view.View.GONE);
+        }
+    }
+
+    private void setDefaultMood() {
+        // Set a default mood based on time of day if no mood is selected
+        if (selectedMood == null && noteId == -1) {
+            java.util.List<MoodHelper.Mood> recommendations = MoodHelper.getMoodRecommendations();
+            if (recommendations != null && recommendations.size() > 0) {
+                selectedMood = (MoodHelper.Mood) recommendations.get(0);
+                updateMoodDisplay();
+            }
         }
     }
 }
