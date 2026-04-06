@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        dockerfile {
-            filename 'Dockerfile'
-            additionalBuildArgs '--pull'
-        }
-    }
+    agent any
 
     options {
         timestamps()
